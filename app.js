@@ -170,10 +170,9 @@ window.onload = async function() {
             accordionContainer.innerHTML = "";
 
             for (const mat of materias) {
-                const { data: archivos } = await miSupabase.from('documentos').select('*').eq('materia_id', mat.id);
-                
+                // MODIFICACIÓN DE SEGURIDAD PARA IPHONE: El botón rápido ahora es un <label> nativo enlazado al input oculto de tu formulario
                 const btnSubirArchivoMateria = usuarioLogueado 
-                    ? `<span class="admin-action-btn open-upload-trigger" data-matid="${mat.id}" style="font-size:11px; padding:2px 6px;">➕ Archivo</span>`
+                    ? `<label for="inputFile" class="admin-action-btn open-upload-trigger" data-matid="${mat.id}" style="font-size:11px; padding:2px 6px; cursor:pointer; display:inline-block;">➕ Archivo</label>`
                     : '';
 
                 const tarjetaMateria = document.createElement("div");
@@ -211,6 +210,16 @@ window.onload = async function() {
                 accordionContainer.appendChild(tarjetaMateria);
             }
 
+            // Inyección segura del listener para sincronizar el selector dinámico de materias al hacer click en el label nativo
+            if (usuarioLogueado) {
+                accordionContainer.querySelectorAll(".open-upload-trigger").forEach(labelTrigger => {
+                    labelTrigger.onclick = (e) => {
+                        selectSubjectForFile.value = e.target.getAttribute("data-matid");
+                        adminUploadModal.style.display = "flex";
+                    };
+                });
+            }
+
             // ==================================================================
             // 🔥 DETONADOR DEL MOTOR RENDEREADOR CANVAS (MÓVILES & PC PERFECTO)
             // ==================================================================
@@ -227,17 +236,13 @@ window.onload = async function() {
                     if (modalBody) modalBody.scrollTop = 0;
 
                     try {
-                        // Descargamos el stream de forma asíncrona mediante PDF.js de Mozilla
                         const loadingTask = pdfjsLib.getDocument(urlArchivo);
                         const pdf = await loadingTask.promise;
                         
-                        pdfContainer.innerHTML = ""; // Limpiamos el mensaje de carga
+                        pdfContainer.innerHTML = ""; 
 
-                        // Bucle ordenado para dibujar cada página del PDF en un Canvas individual
                         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                             const page = await pdf.getPage(pageNum);
-                            
-                            // Forzamos una escala nítida y legible de visualización
                             const viewport = page.getViewport({ scale: 1.5 });
 
                             const canvas = document.createElement('canvas');
@@ -250,7 +255,6 @@ window.onload = async function() {
                                 viewport: viewport
                             };
 
-                            // Inyección al DOM antes de pintar para no interrumpir el flujo visual
                             pdfContainer.appendChild(canvas);
                             await page.render(renderContext).promise;
                         }
@@ -258,14 +262,6 @@ window.onload = async function() {
                         console.error("Error al procesar el PDF con Canvas:", pdfError);
                         pdfContainer.innerHTML = "<p style='color:#ff5c5c; padding:20px;'>Error: El archivo no es compatible o el servidor bloqueó el origen (CORS).</p>";
                     }
-                };
-            });
-
-            // Apertura de subida rápida
-            accordionContainer.querySelectorAll(".open-upload-trigger").forEach(btn => {
-                btn.onclick = (e) => {
-                    selectSubjectForFile.value = e.target.getAttribute("data-matid");
-                    adminUploadModal.style.display = "flex";
                 };
             });
 
@@ -327,7 +323,14 @@ window.onload = async function() {
         btn.disabled = true;
 
         try {
-            const pathLimpio = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+            // DETONADOR DE SANITIZACIÓN: Remueve acentos, eñes, espacios y caracteres extraños para blindar el almacenamiento ante errores de RLS
+            const nombreSeguro = file.name
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // Borra marcas de acentos
+                .replace(/[^a-zA-Z0-9._-]/g, "_"); // Todo lo que no sea letra, número, punto o guión se vuelve guión bajo
+
+            const pathLimpio = `${Date.now()}_${nombreSeguro}`;
+            
             const { error: storageErr } = await miSupabase.storage.from('pdfs-universidad').upload(pathLimpio, file);
             if (storageErr) throw storageErr;
 
@@ -344,7 +347,7 @@ window.onload = async function() {
             adminUploadModal.style.display = "none";
             await cargarMateriasYArchivos();
             alert("¡Documento guardado!");
-        } catch (err) { alert("Error RLS: " + err.message); } 
+        } catch (err) { alert("Error de Transferencia: " + err.message); } 
         finally { btn.textContent = "Subir a la Nube"; btn.disabled = false; }
     };
 
