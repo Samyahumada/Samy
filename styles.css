@@ -99,6 +99,10 @@ body {
     letter-spacing: 0.5px;
 }
 
+.header-container h1 span {
+    color: var(--chambray);
+}
+
 .header-actions {
     display: flex;
     gap: 12px;
@@ -129,7 +133,7 @@ body {
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
-    flex-direction: column; /* Comportamiento móvil por defecto */
+    flex-direction: column;
 }
 
 /* Sidebar de Semestres */
@@ -262,7 +266,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 60%;
+    max-width: 50%;
 }
 
 .view-link {
@@ -381,7 +385,6 @@ body {
         gap: 30px;
     }
 
-    /* Ajustes de tipografía general en Desktop (Letra más grande y legible) */
     header h1 {
         font-size: 26px;
     }
@@ -444,7 +447,6 @@ body {
     }
 }
 
-/* Ajustes complementarios para el selector discretizado de archivos en móviles */
 #file-name-display {
     line-height: 1.4;
     padding: 0 10px;
