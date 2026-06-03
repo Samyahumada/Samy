@@ -3,7 +3,6 @@
 const SUPABASE_URL = "https://xcvanscqhnmnjmdesprh.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjdmFuc2NxaG5tbmptZGVzcHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzNjQzMTQsImV4cCI6MjA5NTk0MDMxNH0.QJye5J92CbWDYF35D_o-AzyDOsqFLiOnWJX5hrg2AQY";
 
-// Configuración del Worker global de PDF.js para renderizado asíncrono en segundo plano
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
@@ -11,6 +10,9 @@ let miSupabase = null;
 let listaSemestres = [];
 let idSemestreActivo = null;
 let usuarioLogueado = null;
+
+// Callback en espera de respuesta para la ventana modal de confirmación
+let resolverConfirmacionGlobal = null;
 
 window.onload = async function() {
     
@@ -41,6 +43,7 @@ window.onload = async function() {
     const loginModal = document.getElementById("loginModal");
     const closeLoginModalBtn = document.getElementById("closeLoginModalBtn");
     const loginForm = document.getElementById("loginForm");
+    const adminSemestersList = document.getElementById("admin-semesters-list");
 
     // Modal de Visualización Segura
     const viewModal = document.getElementById("viewModal");
@@ -48,6 +51,12 @@ window.onload = async function() {
     const pdfContainer = document.getElementById("pdfContainer");
     const iframeShield = document.getElementById("iframeShield");
     const modalTitle = document.getElementById("modal-title");
+
+    // Modal de Confirmación Estilizado
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmModalMessage = document.getElementById("confirmModalMessage");
+    const confirmCancelBtn = document.getElementById("confirmCancelBtn");
+    const confirmAcceptBtn = document.getElementById("confirmAcceptBtn");
 
     // Formularios
     const addSemesterForm = document.getElementById("addSemesterForm");
@@ -57,9 +66,30 @@ window.onload = async function() {
     const selectSemesterForSubject = document.getElementById("selectSemesterForSubject");
     const selectSubjectForFile = document.getElementById("selectSubjectForFile");
     
-    // Nodos para visualización del nombre del archivo en el modal
     const inputFile = document.getElementById("inputFile");
     const fileNameDisplay = document.getElementById("file-name-display");
+
+    // ==========================================
+    // 🔒 MOTOR DE CONFIRMACIÓN ESTILIZADO (MÓDULO NUEVO)
+    // ==========================================
+    function solicitarConfirmacionVisual(mensaje) {
+        confirmModalMessage.textContent = mensaje;
+        confirmModal.style.display = "flex";
+        
+        return new Promise((resolve) => {
+            resolverConfirmacionGlobal = resolve;
+        });
+    }
+
+    confirmCancelBtn.onclick = function() {
+        confirmModal.style.display = "none";
+        if (resolverConfirmacionGlobal) resolverConfirmacionGlobal(false);
+    };
+
+    confirmAcceptBtn.onclick = function() {
+        confirmModal.style.display = "none";
+        if (resolverConfirmacionGlobal) resolverConfirmacionGlobal(true);
+    };
 
     // ==========================================
     // 🔒 GATEKEEPER DE ENTRADA
@@ -102,7 +132,10 @@ window.onload = async function() {
     };
 
     // Aperturas básicas
-    adminNewSemesterBtn.onclick = () => adminStructureModal.style.display = "flex";
+    adminNewSemesterBtn.onclick = () => {
+        adminStructureModal.style.display = "flex";
+        renderizarListaSemestresAdmin();
+    };
     closeAdminStructBtn.onclick = () => adminStructureModal.style.display = "none";
     
     closeUploadModalBtn.onclick = () => {
@@ -116,7 +149,6 @@ window.onload = async function() {
         pdfContainer.innerHTML = ""; 
     };
 
-    // Escuchador dinámico para inyectar el nombre del PDF seleccionado
     if (inputFile && fileNameDisplay) {
         inputFile.onchange = function() {
             if (inputFile.files.length > 0) {
@@ -127,7 +159,6 @@ window.onload = async function() {
         };
     }
 
-    // Capa de control anti-copia nativa
     iframeShield.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('keydown', function(e) {
         if (viewModal.style.display === "flex") {
@@ -151,9 +182,11 @@ window.onload = async function() {
             selectSemesterForSubject.innerHTML = '<option value="">-- Selecciona el Semestre --</option>';
 
             if (listaSemestres.length > 0) {
-                listaSemestres.forEach((sem, index) => {
-                    if (!idSemestreActivo && index === 0) idSemestreActivo = sem.id;
+                if (!idSemestreActivo || !listaSemestres.some(s => s.id === idSemestreActivo)) {
+                    idSemestreActivo = listaSemestres[0].id;
+                }
 
+                listaSemestres.forEach((sem) => {
                     const boton = document.createElement("button");
                     boton.className = `semester-btn ${sem.id === idSemestreActivo ? 'active' : ''}`;
                     boton.textContent = sem.nombre;
@@ -166,13 +199,41 @@ window.onload = async function() {
                     semestersContainer.appendChild(boton);
                     selectSemesterForSubject.innerHTML += `<option value="${sem.id}">${sem.nombre}</option>`;
                 });
+            } else {
+                idSemestreActivo = null;
             }
             cargarMateriasYArchivos();
         } catch (err) { console.error(err.message); }
     }
 
+    function renderizarListaSemestresAdmin() {
+        if (!adminSemestersList) return;
+        adminSemestersList.innerHTML = "";
+        if (listaSemestres.length === 0) {
+            adminSemestersList.innerHTML = "<p style='font-size:12px; opacity:0.5; color: var(--bisque);'>No hay semestres registrados.</p>";
+            return;
+        }
+        listaSemestres.forEach(sem => {
+            const item = document.createElement("div");
+            item.style = "display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.2); padding:8px 12px; border-radius:6px; font-size:13px; margin-bottom: 4px; border: 1px solid rgba(149, 118, 98, 0.15);";
+            item.innerHTML = `
+                <span style="color: var(--text-light); font-weight: 500;">${sem.nombre}</span>
+                <span class="delete-semester-trigger" data-id="${sem.id}" data-name="${sem.nombre}" style="cursor:pointer;" title="Eliminar semestre">🗑️</span>
+            `;
+            adminSemestersList.appendChild(item);
+        });
+
+        adminSemestersList.querySelectorAll(".delete-semester-trigger").forEach(btn => {
+            btn.onclick = (e) => borrarSemestre(e.target.getAttribute("data-id"), e.target.getAttribute("data-name"));
+        });
+    }
+
     async function cargarMateriasYArchivos() {
-        if (!idSemestreActivo || !miSupabase) return;
+        if (!idSemestreActivo || !miSupabase) {
+            accordionContainer.innerHTML = "<p style='opacity:0.6;'>Selecciona o crea un semestre para desplegar materias.</p>";
+            currentTitle.textContent = "Materias";
+            return;
+        }
 
         const semSeleccionado = listaSemestres.find(s => s.id === idSemestreActivo);
         currentTitle.textContent = semSeleccionado ? `Asignaturas: ${semSeleccionado.nombre}` : "Materias";
@@ -187,24 +248,27 @@ window.onload = async function() {
                 return;
             }
 
+            const { data: todosLosArchivos, error: errDocs } = await miSupabase.from('documentos').select('*');
+            if (errDocs) throw errDocs;
+
             accordionContainer.innerHTML = "";
 
             for (const mat of materias) {
-                // CONSULTA RESTAURADA: Trae la lista de documentos enlazados a la materia actual
-                const { data: archivos, error: errDocs } = await miSupabase.from('documentos').select('*').eq('materia_id', mat.id);
-                if (errDocs) console.error("Error al traer documentos de la materia:", mat.nombre, errDocs);
+                const archivos = todosLosArchivos ? todosLosArchivos.filter(f => f.materia_id === mat.id) : [];
 
-                // MUTACIÓN RESPONSIVA PARA MÓVILES: Forzado de label vinculante para eludir bloqueos en Safari iOS
-                const btnSubirArchivoMateria = usuarioLogueado 
-                    ? `<label for="inputFile" class="admin-action-btn open-upload-trigger" data-matid="${mat.id}" style="font-size:11px; padding:4px 8px; cursor:pointer; display:inline-block;">➕ Archivo</label>`
+                const accionesMateriaAdmin = usuarioLogueado 
+                    ? `<div style="display:flex; gap:12px; align-items:center;">
+                        <label for="inputFile" class="admin-action-btn open-upload-trigger" data-matid="${mat.id}" style="font-size:11px; padding:4px 8px; cursor:pointer; display:inline-block;">➕ Archivo</label>
+                        <span class="delete-subject-trigger" data-id="${mat.id}" data-name="${mat.nombre}" style="cursor:pointer; font-size:15px;" title="Eliminar Materia">🗑️</span>
+                       </div>`
                     : '';
 
                 const tarjetaMateria = document.createElement("div");
                 tarjetaMateria.className = "subject-card";
                 tarjetaMateria.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(58, 33, 25, 0.15); padding-bottom:5px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(149, 118, 98, 0.15); padding-bottom:5px;">
                         <h3>${mat.nombre}</h3>
-                        ${btnSubirArchivoMateria}
+                        ${accionesMateriaAdmin}
                     </div>`;
 
                 const listaPdf = document.createElement("ul");
@@ -214,7 +278,7 @@ window.onload = async function() {
                     archivos.forEach(file => {
                         const accionesAdmin = usuarioLogueado 
                             ? `<a href="${file.url_archivo}" download="${file.nombre_archivo}" target="_blank" class="view-link" style="background-color: var(--clay); color: white; text-decoration: none; margin-right: 5px;">Descargar</a>
-                               <span class="delete-btn" data-id="${file.id}" data-url="${file.url_archivo}" title="Eliminar respaldo">🗑️</span>` 
+                               <span class="delete-btn" data-id="${file.id}" data-name="${file.nombre_archivo}" data-url="${file.url_archivo}" title="Eliminar respaldo">🗑️</span>` 
                             : '';
 
                         listaPdf.innerHTML += `
@@ -234,7 +298,6 @@ window.onload = async function() {
                 accordionContainer.appendChild(tarjetaMateria);
             }
 
-            // Sincronizador de variables del modal al usar los accesos rápidos de las asignaturas
             if (usuarioLogueado) {
                 accordionContainer.querySelectorAll(".open-upload-trigger").forEach(labelTrigger => {
                     labelTrigger.onclick = (e) => {
@@ -243,10 +306,13 @@ window.onload = async function() {
                         adminUploadModal.style.display = "flex";
                     };
                 });
+                accordionContainer.querySelectorAll(".delete-subject-trigger").forEach(btn => {
+                    btn.onclick = (e) => borrarMateria(e.target.getAttribute("data-id"), e.target.getAttribute("data-name"));
+                });
             }
 
             // ==================================================================
-            // 🔥 DETONADOR DEL MOTOR RENDEREADOR CANVAS (MÓVILES & PC PERFECTO)
+            // 🔥 DETONADOR DEL MOTOR RENDEREADOR CANVAS
             // ==================================================================
             accordionContainer.querySelectorAll(".view-pdf-trigger").forEach(lnk => {
                 lnk.onclick = async (e) => {
@@ -291,7 +357,7 @@ window.onload = async function() {
             });
 
             accordionContainer.querySelectorAll(".delete-btn").forEach(btn => {
-                btn.onclick = (e) => borrarDocumento(e.target.getAttribute("data-id"), e.target.getAttribute("data-url"));
+                btn.onclick = (e) => borrarDocumento(e.target.getAttribute("data-id"), e.target.getAttribute("data-name"), e.target.getAttribute("data-url"));
             });
 
         } catch (err) { console.error(err); }
@@ -300,7 +366,7 @@ window.onload = async function() {
     async function actualizarSelectoresAdmin() {
         if (!usuarioLogueado || !miSupabase) return;
         try {
-            const { data: todasLasMaterias } = await miSupabase.from('materias').select('*');
+            const { data: todasLasMaterias } = await miSupabase.from('materias').select('*').order('nombre', { ascending: true });
             selectSubjectForFile.innerHTML = '<option value="">-- Selecciona la materia --</option>';
             if (todasLasMaterias) {
                 todasLasMaterias.forEach(m => {
@@ -318,8 +384,8 @@ window.onload = async function() {
             const { error } = await miSupabase.from('semestres').insert([{ nombre: nom }]);
             if (error) throw error;
             addSemesterForm.reset();
-            adminStructureModal.style.display = "none";
             await inicializarEstructura();
+            renderizarListaSemestresAdmin();
         } catch (err) { alert(err.message); }
     };
 
@@ -348,7 +414,6 @@ window.onload = async function() {
         btn.disabled = true;
 
         try {
-            // Sanitización del nombre para evitar errores en las políticas de seguridad de almacenamiento (RLS)
             const nombreSeguro = file.name
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "") 
@@ -412,8 +477,61 @@ window.onload = async function() {
         });
     };
 
-    async function borrarDocumento(id, url) {
-        if (!confirm("¿Eliminar archivo permanentemente?")) return;
+    // ==========================================
+    // 🗑️ FUNCIONES DE ELIMINACIÓN CON CONFIRMACIÓN
+    // ==========================================
+    async function borrarSemestre(id, nombre) {
+    const confirmado = await solicitarConfirmacionVisual(`¿Estás completamente seguro de eliminar el "${nombre}"? Esta acción removerá todas sus materias y documentos en cascada.`);
+    if (!confirmado) return;
+
+    try {
+        const { error } = await miSupabase.from('semestres').delete().eq('id', id);
+        if (error) throw error; // <--- Importante para saltar al catch si Supabase lo rechaza
+        
+        if (idSemestreActivo === id) idSemestreActivo = null;
+        
+        await inicializarEstructura();
+        renderizarListaSemestresAdmin();
+        alert(`Semestre "${nombre}" eliminado con éxito.`);
+    } catch (err) { 
+        console.error(err);
+        alert("No se pudo borrar el semestre: " + err.message); 
+    }
+}
+
+    async function borrarMateria(id, nombre) {
+    const confirmado = await solicitarConfirmacionVisual(`¿Deseas eliminar permanentemente la materia "${nombre}" y todos sus respaldos adjuntos?`);
+    if (!confirmado) return;
+
+    try {
+        // Añadimos { count: 'exact' } para ver cuántas filas se borraron en verdad
+        const { data, error, count } = await miSupabase
+            .from('materias')
+            .delete({ count: 'exact' }) 
+            .eq('id', id);
+        
+        if (error) throw error;
+
+        console.log("Filas afectadas:", count);
+
+        if (count === 0) {
+            alert(`La base de datos rechazó el borrado. Esto suele ser por políticas RLS activadas en Supabase o porque el ID (${id}) no existe.`);
+            return;
+        }
+        
+        await cargarMateriasYArchivos();
+        await actualizarSelectoresAdmin();
+        alert(`Materia "${nombre}" eliminada con éxito.`);
+    } catch (err) { 
+        console.error("Error capturado:", err);
+        alert("Error al borrar materia: " + err.message); 
+    }
+}
+
+    async function borrarDocumento(id, nombre, url) {
+        const confirmado = await solicitarConfirmacionVisual(`¿Eliminar el archivo "${nombre}" de la base de datos y del almacenamiento físico en la nube?`);
+        if (!confirmado) return;
+
         try {
             const nombreEnStorage = url.split('/').pop();
             await miSupabase.storage.from('pdfs-universidad').remove([nombreEnStorage]);
