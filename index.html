@@ -22,7 +22,7 @@
 
     <header class="app-header">
         <div class="header-container">
-            <h1>Directorio Derecho</h1>
+            <h1>Directorio Derecho <span>_</span></h1>
             <div class="header-actions">
                 <button id="adminNewSemesterBtn" class="auth-btn" style="display: none; background-color: var(--clay);">🔧 Configurar</button>
                 <button id="loginBtn" class="auth-btn">Iniciar Sesión (Admin)</button>
@@ -61,6 +61,11 @@
                     <input type="text" id="newSemesterName" placeholder="Ej: Primer Semestre" required style="width:100%; padding:10px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
                     <button type="submit" class="auth-btn" style="background-color: var(--chambray); color: var(--rich-black); font-weight: bold;">Crear Semestre</button>
                 </form>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; border-bottom: 1px dashed var(--clay); padding-bottom: 15px;">
+                    <label>Eliminar Semestres:</label>
+                    <div id="admin-semesters-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;"></div>
+                </div>
 
                 <form id="addSubjectForm" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px dashed var(--clay); padding-bottom: 15px;">
                     <label>Asignar a Semestre:</label>
@@ -135,6 +140,21 @@
             <div class="viewer-wrapper">
                 <div id="iframeShield"></div>
                 <div id="pdfContainer" class="canvas-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal" style="z-index: 2000;">
+        <div class="modal-content" style="max-width: 400px; height: auto; text-align: center;">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">⚠️ Confirmación</h3>
+            </div>
+            <div style="padding: 25px 20px; display: flex; flex-direction: column; gap: 20px;">
+                <p id="confirmModalMessage" style="color: var(--bisque); font-size: 15px; line-height: 1.5;"></p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="confirmCancelBtn" class="auth-btn" style="border-color: var(--clay); color: var(--bisque);">Cancelar</button>
+                    <button id="confirmAcceptBtn" class="auth-btn" style="background-color: #ff5c5c; border-color: #ff5c5c; color: white;">Eliminar permanentemente</button>
+                </div>
             </div>
         </div>
     </div>
