@@ -13,91 +13,68 @@
             <h2> Samy <span>_</span></h2>
             <p>Este repositorio es privado. Ingresa la contraseña de acceso para continuar.</p>
             <form id="gatekeeperForm" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
-                <input type="password" id="gatekeeperPassword" placeholder="Contraseña de acceso" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--caribbean-green); background-color: var(--dark-green); color: var(--anti-flash-white); text-align: center; font-size: 16px;">
-                <button type="submit" class="auth-btn" style="background-color: var(--caribbean-green); color: var(--rich-black); font-weight: bold; padding: 12px;">Entrar al Repositorio</button>
+                <input type="password" id="gatekeeperPassword" placeholder="Contraseña de acceso" required style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--chambray); background-color: var(--rich-black); color: var(--text-light); text-align: center; font-size: 16px;">
+                <button type="submit" class="auth-btn" style="background-color: var(--chambray); color: var(--rich-black); font-weight: bold; padding: 12px;">Entrar al Repositorio</button>
             </form>
-            <p id="gatekeeperError" style="color: #ff5c5c; font-size: 14px; margin-top: 10px; display: none;">❌ Contraseña incorrecta. Intenta de nuevo.</p>
+            <p id="gatekeeperError" style="color: #ff5c5c; font-size: 14px; margin-top: 10px; display: none; font-weight: bold;">⚠️ Contraseña incorrecta. Inténtalo de nuevo.</p>
         </div>
     </div>
 
-    <header>
-        <div class="logo">
-            <h1>Directorio Derecho <span>_</span></h1>
+    <header class="app-header">
+        <div class="header-container">
+            <h1>Directorio Derecho</h1>
+            <div class="header-actions">
+                <button id="adminNewSemesterBtn" class="auth-btn" style="display: none; background-color: var(--clay);">🔧 Configurar</button>
+                <button id="loginBtn" class="auth-btn">Iniciar Sesión (Admin)</button>
+            </div>
         </div>
-        <button class="auth-btn" id="loginBtn">Iniciar Sesión (Admin)</button>
     </header>
 
-    <div class="main-layout">
-        
+    <div class="app-layout">
         <aside class="semester-sidebar">
             <div class="sidebar-header">
                 <h2>Semestres</h2>
-                <button id="adminNewSemesterBtn" class="admin-action-btn" style="display: none;" title="Gestionar Estructura">⚙️ Configurar</button>
             </div>
-            <div id="semesters-container" class="semesters-feed">
-                </div>
+            <div id="semesters-container" class="semesters-feed"></div>
         </aside>
 
         <main class="content-area">
             <div class="content-header-row">
-                <h2 id="current-selection-title">Materias disponibles</h2>
+                <h2 id="current-selection-title">Asignaturas</h2>
                 <div class="search-box">
-                    <input type="text" id="searchBar" placeholder="🔍 Buscar materia o documento...">
+                    <input type="text" id="searchBar" placeholder="🔍 Buscar materia o archivo...">
                 </div>
             </div>
-
-            <div id="subjects-accordion-container" class="subjects-grid">
-                </div>
+            <div id="subjects-accordion-container" class="subjects-grid"></div>
         </main>
     </div>
 
-   <div id="viewModal" class="modal">
+    <div id="adminStructureModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modal-title">Visualizador Seguro</h3>
-                <span class="close-btn" id="closeViewModalBtn">&times;</span>
-            </div>
-            <div class="modal-body" style="overflow-y: auto; background: #2b2e31; padding: 20px 0;">
-                <div id="iframeShield"></div>
-                <div id="pdfContainer" style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
-                    </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="adminStructureModal" class="modal">
-        <div class="modal-content" style="max-width: 500px; height: auto; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-                <h3>Panel de Configuración</h3>
+                <h3>Configuración del Repositorio</h3>
                 <span class="close-btn" id="closeAdminStructBtn">&times;</span>
             </div>
-            <div style="padding: 20px; display: flex; flex-direction: column; gap: 20px;">
-                <div class="admin-card">
-                    <h3>➕ Crear Nuevo Semestre</h3>
-                    <form id="addSemesterForm" class="modal-form-layout">
-                        <input type="text" id="newSemesterName" placeholder="Ej. Cuarto, Leyes, Extra" required>
-                        <button type="submit" class="auth-btn dynamic-submit">Guardar Semestre</button>
-                    </form>
-                </div>
+            <div class="modal-tabs-body" style="padding: 20px; display: flex; flex-direction: column; gap: 20px; max-height: 75vh; overflow-y: auto;">
+                <form id="addSemesterForm" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px dashed var(--clay); padding-bottom: 15px;">
+                    <label>Agregar Semestre:</label>
+                    <input type="text" id="newSemesterName" placeholder="Ej: Primer Semestre" required style="width:100%; padding:10px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
+                    <button type="submit" class="auth-btn" style="background-color: var(--chambray); color: var(--rich-black); font-weight: bold;">Crear Semestre</button>
+                </form>
 
-                <div class="admin-card">
-                    <h3>➕ Crear Nueva Materia</h3>
-                    <form id="addSubjectForm" class="modal-form-layout">
-                        <select id="selectSemesterForSubject" required>
-                            <option value="">-- Selecciona el Semestre --</option>
-                        </select>
-                        <input type="text" id="newSubjectName" placeholder="Ej. Derecho Civil" required>
-                        <button type="submit" class="auth-btn dynamic-submit">Guardar Materia</button>
-                    </form>
-                </div>
+                <form id="addSubjectForm" style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px dashed var(--clay); padding-bottom: 15px;">
+                    <label>Asignar a Semestre:</label>
+                    <select id="selectSemesterForSubject" required style="width:100%; padding:10px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;"></select>
+                    <label>Nombre de la Materia:</label>
+                    <input type="text" id="newSubjectName" placeholder="Ej: Derecho Civil I" required style="width:100%; padding:10px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
+                    <button type="submit" class="auth-btn" style="background-color: var(--chambray); color: var(--rich-black); font-weight: bold;">Crear Materia</button>
+                </form>
 
-                <div class="admin-card">
-                    <h3>🔒 Cambiar Clave de Alumnos</h3>
-                    <form id="changeAccessPasswordForm" class="modal-form-layout">
-                        <input type="text" id="newAccessPassword" placeholder="Nueva contraseña global" required>
-                        <button type="submit" id="submitChangePassBtn" class="auth-btn dynamic-submit" style="border-color: #2FA98C; color: #2FA98C;">Actualizar Clave</button>
-                    </form>
-                </div>
+                <form id="changeAccessPasswordForm" style="display: flex; flex-direction: column; gap: 10px;">
+                    <label>Modificar Contraseña General de Entrada:</label>
+                    <input type="text" id="newAccessPassword" placeholder="Nueva contraseña de acceso" required style="width:100%; padding:10px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
+                    <button type="submit" id="submitChangePassBtn" class="auth-btn" style="background-color: var(--chambray); color: var(--rich-black); font-weight: bold;">Actualizar Clave</button>
+                </form>
             </div>
         </div>
     </div>
@@ -111,15 +88,20 @@
             <form id="uploadForm" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
                 <div>
                     <label>Materia Destino:</label>
-                    <select id="selectSubjectForFile" required style="width:100%; padding:10px; margin-top:5px; background: var(--pine-green); color:white; border:1px solid var(--bangladesh-green); border-radius:6px;">
+                    <select id="selectSubjectForFile" required style="width:100%; padding:10px; margin-top:5px; background: var(--rich-black); color: var(--text-light); border:1px solid var(--clay); border-radius:6px;">
                         <option value="">-- Selecciona la materia --</option>
                     </select>
                 </div>
-                <div>
-                    <label>Selecciona el Archivo:</label>
-                    <input type="file" id="inputFile" accept=".pdf" required style="color: white; margin-top: 8px; font-size: 14px;">
+                
+                <div style="margin-top: 5px; text-align: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px dashed var(--clay);">
+                    <label for="inputFile" style="display: inline-block; padding: 10px 20px; cursor: pointer; font-size: 14px; background-color: var(--chambray); color: var(--rich-black); border-radius: 6px; font-weight: bold; transition: background 0.2s;">
+                        📁 Examinar Documentos
+                    </label>
+                    <input type="file" id="inputFile" accept=".pdf" required style="position: absolute; opacity: 0; width: 1px; height: 1px; overflow: hidden;">
+                    <p id="file-name-display" style="font-size: 13px; margin-top: 10px; margin-bottom: 0; color: var(--bisque); font-style: italic; word-break: break-all; min-height: 18px;"></p>
                 </div>
-                <button type="submit" id="submitUploadBtn" class="auth-btn" style="background: var(--caribbean-green); color: var(--rich-black); font-weight: bold; padding: 12px; margin-top: 10px;">Subir a la Nube</button>
+
+                <button type="submit" id="submitUploadBtn" class="auth-btn" style="background: var(--chambray); color: var(--rich-black); font-weight: bold; padding: 12px; margin-top: 10px;">Subir a la Nube</button>
             </form>
         </div>
     </div>
@@ -133,19 +115,32 @@
             <form id="loginForm" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
                 <div>
                     <label>Correo Electrónico:</label>
-                    <input type="email" id="loginEmail" required style="width:100%; padding:10px; margin-top:5px; background:#032221; color:white; border:1px solid #03624C; border-radius: 6px;">
+                    <input type="email" id="loginEmail" required style="width:100%; padding:10px; margin-top:5px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
                 </div>
                 <div>
                     <label>Contraseña:</label>
-                    <input type="password" id="loginPassword" required style="width:100%; padding:10px; margin-top:5px; background:#032221; color:white; border:1px solid #03624C; border-radius: 6px;">
+                    <input type="password" id="loginPassword" required style="width:100%; padding:10px; margin-top:5px; background: var(--rich-black); color:white; border:1px solid var(--clay); border-radius: 6px;">
                 </div>
-                <button type="submit" class="auth-btn" style="width: 100%; padding: 12px; background-color: var(--caribbean-green); color: var(--rich-black); font-weight: bold;">Ingresar</button>
+                <button type="submit" class="auth-btn" style="width: 100%; padding: 12px; background-color: var(--chambray); color: var(--rich-black); font-weight: bold;">Ingresar</button>
             </form>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <div id="viewModal" class="modal">
+        <div class="modal-content viewer-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Visualizador Seguro</h3>
+                <span class="close-btn" id="closeViewModalBtn">&times;</span>
+            </div>
+            <div class="viewer-wrapper">
+                <div id="iframeShield"></div>
+                <div id="pdfContainer" class="canvas-container"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
