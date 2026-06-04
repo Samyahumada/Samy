@@ -53,6 +53,8 @@ body {
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     border: 1px solid rgba(149, 118, 98, 0.2);
+
+    margin-bottom: 12vh;
 }
 
 .gatekeeper-box h2 {
