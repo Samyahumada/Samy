@@ -41,6 +41,12 @@ body {
     z-index: 9999;
     display: flex;
     justify-content: center;
+
+    background-image: url('Imagenes/FondoSam.jpg'); /* Ruta a tu carpeta e imagen */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+   
     align-items: flex-star;
     padding-top: 0vh; 
     
