@@ -1,11 +1,11 @@
 @import url('https://fonts.google.com/share?selection.family=Imperial+Script');
 /* ==========================================================================
-   PALETA DE COLORES: REPOSITORIO ACADÉMICO (EDICIÓN CONFORT VISUAL)
+   PALETA DE COLORES: REPOSITORIO ACADÉMICO (EDICIÓN CONFORTE VISUAL)
    ========================================================================== */
 :root {
     --espresso: #3A2119;       /* Color base oscuro / Encabezados secundarios */
     --clay: #957662;           /* Tonos medios / Bordes / Detalles */
-    --bisque: #EBCDB7;         /* Fondo de lectura suave */
+    --bisque: #EBCDB7;         /* Fondo de lectura suave (reemplaza al blanco brillante) */
     --chambray: #79A3C3;       /* Color de acento principal / Botones / Activos */
     --glacier: #D2E2EC;        /* Fondos claros / Contrastes sutiles */
     
@@ -31,7 +31,7 @@ body {
 }
 
 /* ==========================================================================
-   🔒 PERÍMETRO PROTEGIDO (GATEKEEPER) - CONFIGURACIÓN BASE: MÓVILES
+   🔒 PERÍMETRO PROTEGIDO (GATEKEEPER)
    ========================================================================== */
 .gatekeeper-overlay {
     position: fixed;
@@ -41,10 +41,8 @@ body {
     z-index: 9999;
     display: flex;
     justify-content: center;
-    
-    /* En móviles se alinea arriba y se despega un 15% del techo */
-    align-items: flex-start; 
-    padding-top: 15vh; 
+    align-items: flex-star;
+    padding-top: 0vh; 
     
     padding-left: 20px;
     padding-right: 20px;
@@ -57,22 +55,17 @@ body {
     border-radius: 16px;
     max-width: 440px;
     width: 100%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border: 1px solid rgba(149, 118, 98, 0.2);
-    
-    /* Centrado de los elementos y textos de forma interna */
     text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 0; /* Sin margen inferior en móvil */
+    justify-content: center;
+    gap: 0px;
 }
 
 .gatekeeper-box h2 {
     font-size: 28px;
     color: var(--bisque);
-   font-family: 'Imperial Script';
+    font-family: 'Imperial Script';
 }
 
 .gatekeeper-box h2 span {
@@ -83,12 +76,8 @@ body {
     font-size: 14px;
     color: var(--glacier);
     line-height: 1.5;
+    margin-bottom: 25px;
     opacity: 0.9;
-}
-
-/* Centrado explícito para el input y botón del Gatekeeper */
-.gatekeeper-box input[type="password"] {
-    text-align: center;
 }
 
 /* ==========================================================================
@@ -393,17 +382,11 @@ body {
     height: auto !important;
 }
 
-#file-name-display {
-    line-height: 1.4;
-    padding: 0 10px;
-}
-
 /* ==========================================================================
-   🔄 MEDIA QUERIES ADAPTATIVAS (COMPUTADORA / ESCRITORIO)
+   🔄 RESPONSIVIDAD / MEDIAS QUERIES ADAPTATIVAS (DESKTOP)
    ========================================================================== */
 @media (min-width: 850px) {
-    /* 🛠️ Regresa al centrado óptico elevado del Gatekeeper en Escritorio */
-    .gatekeeper-overlay {
+   .gatekeeper-overlay {
         align-items: center; 
         padding-top: 20px; 
     }
@@ -411,8 +394,7 @@ body {
     .gatekeeper-box {
         margin-bottom: 12vh; 
     }
-
-    /* Estructura general dividida en pantallas grandes */
+   
     .app-layout {
         flex-direction: row;
         padding: 30px 24px;
@@ -479,4 +461,9 @@ body {
     .subject-card h3 {
         font-size: 19px;
     }
+}
+
+#file-name-display {
+    line-height: 1.4;
+    padding: 0 10px;
 }
