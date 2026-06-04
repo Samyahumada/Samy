@@ -126,7 +126,7 @@ window.onload = async function() {
             console.error("Error perimetral:", err.message);
             alert("Error de comunicación con el servidor.");
         } finally {
-            btnEntrar.textContent = "Entrar al Repositorio";
+            btnEntrar.textContent = "Entrar";
             btnEntrar.disabled = false;
         }
     };
