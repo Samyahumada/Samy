@@ -40,8 +40,12 @@ body {
     z-index: 9999;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
+    align-items: flex-star;
+    padding-top: 15vh; 
+    
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
 }
 
 .gatekeeper-box {
